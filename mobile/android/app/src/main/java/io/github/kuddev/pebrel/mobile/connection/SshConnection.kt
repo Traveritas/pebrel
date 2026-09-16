@@ -4,6 +4,7 @@ import com.termux.terminal.SessionTransport
 import net.schmizz.sshj.SSHClient
 import net.schmizz.sshj.common.Buffer
 import net.schmizz.sshj.connection.channel.direct.Session
+import net.schmizz.sshj.transport.verification.HostKeyVerifier
 import java.io.Closeable
 import java.io.InputStream
 import java.io.OutputStream
@@ -36,10 +37,14 @@ class SshConnection(
         check(!closed)
         client.connectTimeout = 15_000
         client.timeout = 90_000
-        client.addHostKeyVerifier { _, _, key ->
-            val fingerprint = keyFingerprint(key)
-            if (host.fingerprint.isNotEmpty()) host.fingerprint == fingerprint else verify(host, fingerprint)
-        }
+        client.addHostKeyVerifier(object : HostKeyVerifier {
+            override fun verify(hostname: String, port: Int, key: PublicKey): Boolean {
+                val fingerprint = keyFingerprint(key)
+                return if (host.fingerprint.isNotEmpty()) host.fingerprint == fingerprint
+                    else this@SshConnection.verify(host, fingerprint)
+            }
+            override fun findExistingAlgorithms(hostname: String, port: Int): List<String> = emptyList()
+        })
         try {
             client.connect(host.address, host.port)
             check(!closed)
@@ -80,7 +85,8 @@ class SshTerminalTransport(private val connection: SshConnection) : SessionTrans
     override fun awaitExit(): Int {
         val running = checkNotNull(shell)
         running.join()
-        return running.exitStatus ?: -1
+        // SSHJ's interactive Shell interface has no exit-status accessor.
+        return -1
     }
     override fun close() {
         closed = true

@@ -38,4 +38,6 @@
     <string name="desktop_setup">桌面连接预览</string>
     <string name="desktop_setup_hint">电脑需要可连接的 SSH 服务，并运行包含 mobile-bridge 的 Pebrel；命令需在 PATH 中可用。Windows、Linux、macOS 共用同一通道协议。</string>
     <string name="native_preview_boundary">原生联通预览：本地 Shell、密码 SSH、桌面任务发现与有界输出读取。二维码配对、自建 WSS 中转、通知断线补收、附件、WebDAV 和完整视觉设计尚未在此构建中实现。</string>
+    <string name="appearance">外观</string>
+    <string name="follow_system">跟随系统</string>
 </resources>

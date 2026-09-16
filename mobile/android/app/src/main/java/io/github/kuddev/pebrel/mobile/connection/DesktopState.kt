@@ -40,7 +40,7 @@ class DesktopTransitions {
             val key = pane.window to pane.id
             val previous = sequences.put(key, pane.sequence)
             !first && previous != null && pane.sequence > previous &&
-                pane.state in setOf("completed", "failed", "waiting_input", "attention")
+                pane.state in setOf("finished", "failed", "waiting_input", "attention")
         }
         sequences.keys.retainAll(panes.map { it.window to it.id }.toSet())
         return changed

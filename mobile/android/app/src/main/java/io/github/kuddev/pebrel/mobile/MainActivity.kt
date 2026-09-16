@@ -140,20 +140,23 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun Settings(repository: SessionRepository) {
-        var background by rememberSaveable { mutableStateOf(false) }
+        val background by repository.backgroundActive.collectAsStateWithLifecycle()
+        val sessions by repository.sessions.collectAsStateWithLifecycle()
+        val desktops by repository.desktops.collectAsStateWithLifecycle()
         val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
         Column(Modifier.verticalScroll(rememberScrollState()).padding(20.dp)) {
             Text(stringResource(R.string.background_title), style = MaterialTheme.typography.titleMedium)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.keep_background), modifier = Modifier.weight(1f))
-                Switch(checked = background, onCheckedChange = { enabled ->
-                    background = enabled
+                Switch(checked = background, enabled = background || sessions.any { it.status in setOf("ready", "connecting") } || desktops.any { it.status in setOf("ready", "connecting") }, onCheckedChange = { enabled ->
                     if (enabled) startForegroundService(Intent(this@MainActivity, SessionService::class.java))
                     else stopService(Intent(this@MainActivity, SessionService::class.java))
                 })
             }
             Text(stringResource(R.string.background_boundary), style = MaterialTheme.typography.bodySmall)
             TextButton(onClick = { if (Build.VERSION.SDK_INT >= 33) permission.launch(Manifest.permission.POST_NOTIFICATIONS) }) { Text(stringResource(R.string.enable_notifications)) }
+            HorizontalDivider(Modifier.padding(vertical = 20.dp))
+            ThemePicker(repository)
             HorizontalDivider(Modifier.padding(vertical = 20.dp))
             Text(stringResource(R.string.desktop_setup), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.desktop_setup_hint), modifier = Modifier.padding(vertical = 12.dp))

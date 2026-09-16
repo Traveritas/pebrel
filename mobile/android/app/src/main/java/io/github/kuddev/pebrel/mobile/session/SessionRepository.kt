@@ -36,6 +36,12 @@ class SessionRepository(private val context: Context) {
     val hosts = savedHosts.asStateFlow()
     val trust = MutableStateFlow<TrustRequest?>(null)
     val error = MutableStateFlow<String?>(null)
+    val backgroundActive = MutableStateFlow(false)
+    val theme = MutableStateFlow(preferences.getString("theme", "system") ?: "system")
+    fun selectTheme(value: String) {
+        theme.value = value
+        scope.launch { preferences.edit().putString("theme", theme.value).apply() }
+    }
     val output = MutableStateFlow(DesktopOutput())
     private val hostWrites = Mutex()
     private var readJob: Job? = null
@@ -104,6 +110,19 @@ class SessionRepository(private val context: Context) {
                 stopIdleService()
             }
             override fun onInputRejected(session: TerminalSession) { error.value = "input_rejected" }
+            override fun onCopyTextToClipboard(session: TerminalSession, text: String) {
+                if (renderOwner != id) return
+                context.getSystemService(android.content.ClipboardManager::class.java)
+                    .setPrimaryClip(android.content.ClipData.newPlainText("Pebrel", text))
+            }
+            override fun onPasteTextFromClipboard(session: TerminalSession?) {
+                if (renderOwner != id) return
+                val clip = context.getSystemService(android.content.ClipboardManager::class.java).primaryClip
+                if (clip != null && clip.itemCount > 0) {
+                    session?.emulator?.paste(clip.getItemAt(0).coerceToText(context).toString())
+                }
+            }
+            override fun onColorsChanged(session: TerminalSession) { if (renderOwner == id) redraw?.invoke() }
         }
         val terminal = TerminalSession(transport, 2000, callbacks)
         live.value = live.value + LocalSession(id, title, source, terminal)

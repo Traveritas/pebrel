@@ -15,6 +15,10 @@ import io.github.kuddev.pebrel.mobile.R
 import io.github.kuddev.pebrel.mobile.connection.DesktopPane
 
 class SessionService : Service() {
+    override fun onDestroy() {
+        (application as PebrelApplication).sessions.backgroundActive.value = false
+        super.onDestroy()
+    }
     override fun onBind(intent: Intent?): IBinder? = null
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == "STOP") {
@@ -28,6 +32,7 @@ class SessionService : Service() {
         startForeground(1, Notification.Builder(this, "sessions").setSmallIcon(R.drawable.ic_pebrel)
             .setContentTitle(getString(R.string.app_name)).setContentText(getString(R.string.background_active))
             .setContentIntent(open).setOngoing(true).addAction(Notification.Action.Builder(null, getString(R.string.stop_sessions), stop).build()).build())
+        (application as PebrelApplication).sessions.backgroundActive.value = true
         return START_NOT_STICKY
     }
 }

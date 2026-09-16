@@ -38,4 +38,6 @@
     <string name="desktop_setup">Desktop connection preview</string>
     <string name="desktop_setup_hint">The computer needs a reachable SSH server and a running Pebrel build with mobile-bridge on PATH. Windows, Linux and macOS use the same channel protocol.</string>
     <string name="native_preview_boundary">Native connection preview: local shell, password SSH, desktop task discovery and bounded output reads. QR pairing, self-hosted WSS relay, durable notification replay, attachments, WebDAV and the complete visual design are not implemented in this build yet.</string>
+    <string name="appearance">Appearance</string>
+    <string name="follow_system">Follow system</string>
 </resources>

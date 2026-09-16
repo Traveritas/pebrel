@@ -13,6 +13,8 @@ import com.termux.view.TerminalView
 import com.termux.view.TerminalViewClient
 import io.github.kuddev.pebrel.mobile.session.LocalSession
 import io.github.kuddev.pebrel.mobile.session.SessionRepository
+import io.github.kuddev.pebrel.mobile.PebrelApplication
+import androidx.compose.runtime.key
 
 @Composable
 fun TerminalSurface(session: LocalSession, repository: SessionRepository, modifier: Modifier) {
@@ -20,7 +22,7 @@ fun TerminalSurface(session: LocalSession, repository: SessionRepository, modifi
     AndroidView(modifier = modifier, factory = { context ->
         TerminalView(context, null).apply {
             setTextSize((14 * resources.displayMetrics.scaledDensity).toInt())
-            setTypeface(runCatching { Typeface.createFromAsset(context.assets, "terminal.ttf") }.getOrDefault(Typeface.MONOSPACE))
+            setTypeface((context.applicationContext as PebrelApplication).terminalTypeface)
             setTerminalViewClient(object : TerminalViewClient {
                 override fun onScale(scale: Float): Float = scale
                 override fun onSingleTapUp(event: MotionEvent) { requestFocus(); context.getSystemService(InputMethodManager::class.java).showSoftInput(this@apply, 0) }
