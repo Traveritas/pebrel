@@ -1,0 +1,6 @@
+-keep class com.termux.terminal.JNI { *; }
+-keepattributes Signature,InnerClasses,EnclosingMethod
+-keep class net.schmizz.sshj.** { *; }
+-keep class com.hierynomus.sshj.** { *; }
+-keep class net.i2p.crypto.** { *; }
+-keep class org.bouncycastle.** { *; }

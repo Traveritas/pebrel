@@ -1,0 +1,53 @@
+name: Mobile connection preview
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["mobile/**"]
+  pull_request:
+    paths:
+      - "mobile/**"
+      - "nebula_app/src/runtime_api/mobile_bridge.rs"
+      - ".github/workflows/mobile-preview.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.13"
+      - name: Compile and test terminal, transports and preview application
+        working-directory: mobile/android
+        run: gradle --no-daemon :terminal-emulator:testDebugUnitTest :terminal-view:testDebugUnitTest :app:testPreviewUnitTest :app:assemblePreview :app:lintPreview
+      - name: Hash preview APK
+        run: sha256sum mobile/android/app/build/outputs/apk/preview/*.apk > mobile/android/app/build/outputs/apk/preview/SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pebrel-android-connection-preview
+          path: |
+            mobile/android/app/build/outputs/apk/preview/*.apk
+            mobile/android/app/build/outputs/apk/preview/SHA256SUMS
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-check-reports
+          path: mobile/android/**/build/reports/
+          if-no-files-found: warn
